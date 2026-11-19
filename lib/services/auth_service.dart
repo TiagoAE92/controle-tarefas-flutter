@@ -2,10 +2,12 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
 
+// Reúne as operações de cadastro, login e encerramento de sessão.
 class AuthService {
   static const String chaveUsuarios = 'usuarios';
   static const String chaveLogin = 'usuario_logado';
 
+  // Busca a lista de usuários salva no dispositivo.
   Future<List<UserModel>> _lerUsuarios() async {
     final prefs = await SharedPreferences.getInstance();
     final dados = prefs.getString(chaveUsuarios);
@@ -18,6 +20,7 @@ class AuthService {
         .toList();
   }
 
+  // Cadastra um usuário e impede o uso de um e-mail já registrado.
   Future<String?> cadastrar(UserModel usuario) async {
     final usuarios = await _lerUsuarios();
 
@@ -36,6 +39,7 @@ class AuthService {
     return null;
   }
 
+  // Confere as credenciais e registra o usuário autenticado.
   Future<String?> login(String email, String senha) async {
     final usuarios = await _lerUsuarios();
 
@@ -55,6 +59,7 @@ class AuthService {
     return null;
   }
 
+  // Retorna os dados do usuário que possui uma sessão ativa.
   Future<UserModel?> usuarioLogado() async {
     final prefs = await SharedPreferences.getInstance();
     final email = prefs.getString(chaveLogin);
@@ -69,6 +74,7 @@ class AuthService {
     return null;
   }
 
+  // Remove a identificação da sessão atual.
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(chaveLogin);
