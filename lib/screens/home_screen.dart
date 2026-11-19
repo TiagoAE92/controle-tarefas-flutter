@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/task_model.dart';
 import '../services/database_service.dart';
 
+// Tela principal que apresenta e permite gerenciar as tarefas do usuário.
 class HomeScreen extends StatefulWidget {
   final String email;
   final Future<void> Function() onLogout;
@@ -28,6 +29,7 @@ class _HomeScreenState extends State<HomeScreen> {
     carregarTarefas();
   }
 
+  // Atualiza a lista de tarefas exibida na tela.
   Future<void> carregarTarefas() async {
     final lista = await banco.listar(widget.email);
     if (!mounted) return;
@@ -38,6 +40,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  // Abre o formulário para cadastrar uma tarefa ou editar uma existente.
   Future<void> abrirFormulario({TaskModel? tarefa}) async {
     final resultado = await showDialog<TaskModel>(
       context: context,
@@ -58,6 +61,7 @@ class _HomeScreenState extends State<HomeScreen> {
     await carregarTarefas();
   }
 
+  // Altera a situação da tarefa entre concluída e pendente.
   Future<void> mudarStatus(TaskModel tarefa, bool? valor) async {
     await banco.atualizar(
       widget.email,
@@ -68,6 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
     await carregarTarefas();
   }
 
+  // Solicita confirmação e remove a tarefa selecionada.
   Future<void> excluir(TaskModel tarefa) async {
     final confirmou = await showDialog<bool>(
       context: context,
@@ -122,8 +127,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: ListTile(
                         leading: Checkbox(
                           value: tarefa.concluida,
-                          onChanged: (valor) =>
-                              mudarStatus(tarefa, valor),
+                          onChanged: (valor) => mudarStatus(tarefa, valor),
                         ),
                         title: Text(
                           tarefa.titulo,
@@ -136,8 +140,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         subtitle: tarefa.descricao.isEmpty
                             ? null
                             : Text(tarefa.descricao),
-                        onTap: () =>
-                            abrirFormulario(tarefa: tarefa),
+                        onTap: () => abrirFormulario(tarefa: tarefa),
                         trailing: IconButton(
                           tooltip: 'Excluir',
                           onPressed: () => excluir(tarefa),
@@ -155,30 +158,27 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
+// Formulário utilizado para criar uma tarefa ou alterar seus dados.
 class _TaskFormDialog extends StatefulWidget {
   final TaskModel? tarefa;
 
   const _TaskFormDialog({this.tarefa});
 
   @override
-  State<_TaskFormDialog> createState() =>
-      _TaskFormDialogState();
+  State<_TaskFormDialog> createState() => _TaskFormDialogState();
 }
 
 class _TaskFormDialogState extends State<_TaskFormDialog> {
   final _formKey = GlobalKey<FormState>();
-
   late final TextEditingController _tituloController;
   late final TextEditingController _descricaoController;
 
   @override
   void initState() {
     super.initState();
-
     _tituloController = TextEditingController(
       text: widget.tarefa?.titulo ?? '',
     );
-
     _descricaoController = TextEditingController(
       text: widget.tarefa?.descricao ?? '',
     );
@@ -191,6 +191,7 @@ class _TaskFormDialogState extends State<_TaskFormDialog> {
     super.dispose();
   }
 
+  // Valida os campos e devolve os dados preenchidos para a tela principal.
   void _salvar() {
     if (!_formKey.currentState!.validate()) return;
 
@@ -211,9 +212,7 @@ class _TaskFormDialogState extends State<_TaskFormDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text(
-        widget.tarefa == null
-            ? 'Nova tarefa'
-            : 'Editar tarefa',
+        widget.tarefa == null ? 'Nova tarefa' : 'Editar tarefa',
       ),
       content: Form(
         key: _formKey,
