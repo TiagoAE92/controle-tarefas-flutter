@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import 'register_screen.dart';
 
+// Tela utilizada para que o usuário acesse sua conta.
 class LoginScreen extends StatefulWidget {
   final void Function(String email) onLogin;
 
@@ -26,6 +27,7 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  // Valida os campos e solicita a autenticação ao serviço.
   Future<void> fazerLogin() async {
     if (!formKey.currentState!.validate()) return;
 
