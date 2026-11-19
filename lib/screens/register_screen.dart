@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/user_model.dart';
 import '../services/auth_service.dart';
 
+// Tela responsável pelo cadastro de novos usuários.
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -25,6 +26,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     super.dispose();
   }
 
+  // Valida os dados preenchidos e registra a nova conta.
   Future<void> cadastrar() async {
     if (!formKey.currentState!.validate()) return;
 
