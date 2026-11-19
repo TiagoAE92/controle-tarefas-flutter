@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import '../models/task_model.dart';
 import '../services/database_service.dart';
@@ -30,6 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> carregarTarefas() async {
     final lista = await banco.listar(widget.email);
     if (!mounted) return;
+
     setState(() {
       tarefas = lista;
       carregando = false;
@@ -37,79 +39,23 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> abrirFormulario({TaskModel? tarefa}) async {
-    final tituloController = TextEditingController(text: tarefa?.titulo ?? '');
-    final descricaoController =
-        TextEditingController(text: tarefa?.descricao ?? '');
-    final formKey = GlobalKey<FormState>();
-
-    final resultado = await showDialog<bool>(
+    final resultado = await showDialog<TaskModel>(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(tarefa == null ? 'Nova tarefa' : 'Editar tarefa'),
-          content: Form(
-            key: formKey,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextFormField(
-                    controller: tituloController,
-                    decoration: const InputDecoration(labelText: 'Título'),
-                    validator: (valor) {
-                      if (valor == null || valor.trim().isEmpty) {
-                        return 'Digite um título.';
-                      }
-                      return null;
-                    },
-                  ),
-                  TextFormField(
-                    controller: descricaoController,
-                    decoration: const InputDecoration(labelText: 'Descrição'),
-                    maxLines: 3,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancelar'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (formKey.currentState!.validate()) {
-                  Navigator.pop(context, true);
-                }
-              },
-              child: const Text('Salvar'),
-            ),
-          ],
-        );
+      builder: (dialogContext) {
+        return _TaskFormDialog(tarefa: tarefa);
       },
     );
 
-    if (resultado == true) {
-      if (tarefa == null) {
-        final nova = TaskModel(
-          id: DateTime.now().microsecondsSinceEpoch.toString(),
-          titulo: tituloController.text.trim(),
-          descricao: descricaoController.text.trim(),
-        );
-        await banco.adicionar(widget.email, nova);
-      } else {
-        final editada = tarefa.copyWith(
-          titulo: tituloController.text.trim(),
-          descricao: descricaoController.text.trim(),
-        );
-        await banco.atualizar(widget.email, editada);
-      }
-      await carregarTarefas();
+    if (!mounted || resultado == null) return;
+
+    if (tarefa == null) {
+      await banco.adicionar(widget.email, resultado);
+    } else {
+      await banco.atualizar(widget.email, resultado);
     }
 
-    tituloController.dispose();
-    descricaoController.dispose();
+    if (!mounted) return;
+    await carregarTarefas();
   }
 
   Future<void> mudarStatus(TaskModel tarefa, bool? valor) async {
@@ -117,32 +63,36 @@ class _HomeScreenState extends State<HomeScreen> {
       widget.email,
       tarefa.copyWith(concluida: valor ?? false),
     );
+
+    if (!mounted) return;
     await carregarTarefas();
   }
 
   Future<void> excluir(TaskModel tarefa) async {
     final confirmou = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Excluir tarefa?'),
         content: Text('Deseja excluir "${tarefa.titulo}"?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
+            onPressed: () => Navigator.pop(dialogContext, false),
             child: const Text('Cancelar'),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(context, true),
+            onPressed: () => Navigator.pop(dialogContext, true),
             child: const Text('Excluir'),
           ),
         ],
       ),
     );
 
-    if (confirmou == true) {
-      await banco.excluir(widget.email, tarefa.id);
-      await carregarTarefas();
-    }
+    if (!mounted || confirmou != true) return;
+
+    await banco.excluir(widget.email, tarefa.id);
+
+    if (!mounted) return;
+    await carregarTarefas();
   }
 
   @override
@@ -167,11 +117,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   itemCount: tarefas.length,
                   itemBuilder: (context, indice) {
                     final tarefa = tarefas[indice];
+
                     return Card(
                       child: ListTile(
                         leading: Checkbox(
                           value: tarefa.concluida,
-                          onChanged: (valor) => mudarStatus(tarefa, valor),
+                          onChanged: (valor) =>
+                              mudarStatus(tarefa, valor),
                         ),
                         title: Text(
                           tarefa.titulo,
@@ -184,7 +136,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         subtitle: tarefa.descricao.isEmpty
                             ? null
                             : Text(tarefa.descricao),
-                        onTap: () => abrirFormulario(tarefa: tarefa),
+                        onTap: () =>
+                            abrirFormulario(tarefa: tarefa),
                         trailing: IconButton(
                           tooltip: 'Excluir',
                           onPressed: () => excluir(tarefa),
@@ -198,6 +151,113 @@ class _HomeScreenState extends State<HomeScreen> {
         onPressed: () => abrirFormulario(),
         child: const Icon(Icons.add),
       ),
+    );
+  }
+}
+
+class _TaskFormDialog extends StatefulWidget {
+  final TaskModel? tarefa;
+
+  const _TaskFormDialog({this.tarefa});
+
+  @override
+  State<_TaskFormDialog> createState() =>
+      _TaskFormDialogState();
+}
+
+class _TaskFormDialogState extends State<_TaskFormDialog> {
+  final _formKey = GlobalKey<FormState>();
+
+  late final TextEditingController _tituloController;
+  late final TextEditingController _descricaoController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _tituloController = TextEditingController(
+      text: widget.tarefa?.titulo ?? '',
+    );
+
+    _descricaoController = TextEditingController(
+      text: widget.tarefa?.descricao ?? '',
+    );
+  }
+
+  @override
+  void dispose() {
+    _tituloController.dispose();
+    _descricaoController.dispose();
+    super.dispose();
+  }
+
+  void _salvar() {
+    if (!_formKey.currentState!.validate()) return;
+
+    final tarefaOriginal = widget.tarefa;
+
+    final tarefa = TaskModel(
+      id: tarefaOriginal?.id ??
+          DateTime.now().microsecondsSinceEpoch.toString(),
+      titulo: _tituloController.text.trim(),
+      descricao: _descricaoController.text.trim(),
+      concluida: tarefaOriginal?.concluida ?? false,
+    );
+
+    Navigator.of(context).pop(tarefa);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(
+        widget.tarefa == null
+            ? 'Nova tarefa'
+            : 'Editar tarefa',
+      ),
+      content: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _tituloController,
+                autofocus: true,
+                decoration: const InputDecoration(
+                  labelText: 'Título',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (valor) {
+                  if (valor == null || valor.trim().isEmpty) {
+                    return 'Digite um título.';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _descricaoController,
+                decoration: const InputDecoration(
+                  labelText: 'Descrição',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 3,
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancelar'),
+        ),
+        ElevatedButton(
+          onPressed: _salvar,
+          child: const Text('Salvar'),
+        ),
+      ],
     );
   }
 }
