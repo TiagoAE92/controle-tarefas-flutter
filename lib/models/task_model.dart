@@ -1,3 +1,4 @@
+// Representa uma tarefa e suas principais informações.
 class TaskModel {
   final String id;
   final String titulo;
@@ -11,6 +12,7 @@ class TaskModel {
     this.concluida = false,
   });
 
+  // Cria uma cópia da tarefa permitindo alterar apenas alguns campos.
   TaskModel copyWith({
     String? titulo,
     String? descricao,
@@ -24,6 +26,7 @@ class TaskModel {
     );
   }
 
+  // Converte a tarefa para um mapa que pode ser salvo em JSON.
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -33,6 +36,7 @@ class TaskModel {
     };
   }
 
+  // Recupera uma tarefa a partir de um mapa de dados.
   factory TaskModel.fromMap(Map<String, dynamic> map) {
     return TaskModel(
       id: map['id'] ?? '',
@@ -40,5 +44,8 @@ class TaskModel {
       descricao: map['descricao'] ?? '',
       concluida: map['concluida'] ?? false,
     );
+  }
+}
+
   }
 }
