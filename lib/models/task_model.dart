@@ -19,7 +19,7 @@ class TaskModel {
     String? titulo,
     String? descricao,
     bool? concluida,
-    String? prioridade, // NOVO
+    String? prioridade,
   }) {
     return TaskModel(
       id: id,
