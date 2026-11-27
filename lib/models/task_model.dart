@@ -4,12 +4,14 @@ class TaskModel {
   final String titulo;
   final String descricao;
   final bool concluida;
+  final String prioridade;
 
   TaskModel({
     required this.id,
     required this.titulo,
     required this.descricao,
     this.concluida = false,
+    this.prioridade = 'Média',
   });
 
   // Cria uma cópia da tarefa permitindo alterar apenas alguns campos.
@@ -17,12 +19,14 @@ class TaskModel {
     String? titulo,
     String? descricao,
     bool? concluida,
+    String? prioridade, // NOVO
   }) {
     return TaskModel(
       id: id,
       titulo: titulo ?? this.titulo,
       descricao: descricao ?? this.descricao,
       concluida: concluida ?? this.concluida,
+      prioridade: prioridade ?? this.prioridade,
     );
   }
 
@@ -33,6 +37,7 @@ class TaskModel {
       'titulo': titulo,
       'descricao': descricao,
       'concluida': concluida,
+      'prioridade': prioridade,
     };
   }
 
@@ -43,9 +48,7 @@ class TaskModel {
       titulo: map['titulo'] ?? '',
       descricao: map['descricao'] ?? '',
       concluida: map['concluida'] ?? false,
+      prioridade: map['prioridade'] ?? 'Média',
     );
-  }
-}
-
   }
 }
