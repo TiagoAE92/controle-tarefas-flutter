@@ -11,6 +11,7 @@ Aplicativo simples de lista de tarefas desenvolvido em Flutter e Dart. O usuári
 - Criar, listar, editar e excluir tarefas.
 - Marcar tarefas como concluídas.
 - Dados separados por usuário e mantidos após fechar o aplicativo.
+- Campo de prioridade (Baixa, Média ou Alta) em cada tarefa
 
 ## Tecnologias
 
