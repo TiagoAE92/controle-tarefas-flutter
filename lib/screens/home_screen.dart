@@ -136,9 +136,12 @@ class _HomeScreenState extends State<HomeScreen> {
                                 : TextDecoration.none,
                           ),
                         ),
-                        subtitle: tarefa.descricao.isEmpty
-                            ? null
-                            : Text(tarefa.descricao),
+                        // NOVO: mostra a prioridade abaixo da descrição.
+                        subtitle: Text(
+                          tarefa.descricao.isEmpty
+                              ? 'Prioridade: ${tarefa.prioridade}'
+                              : '${tarefa.descricao}\nPrioridade: ${tarefa.prioridade}',
+                        ),
                         onTap: () => abrirFormulario(tarefa: tarefa),
                         trailing: IconButton(
                           tooltip: 'Excluir',
@@ -171,6 +174,7 @@ class _TaskFormDialogState extends State<_TaskFormDialog> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _tituloController;
   late final TextEditingController _descricaoController;
+  String _prioridade = 'Média';
 
   @override
   void initState() {
@@ -181,6 +185,7 @@ class _TaskFormDialogState extends State<_TaskFormDialog> {
     _descricaoController = TextEditingController(
       text: widget.tarefa?.descricao ?? '',
     );
+    _prioridade = widget.tarefa?.prioridade ?? 'Média';
   }
 
   @override
@@ -202,6 +207,7 @@ class _TaskFormDialogState extends State<_TaskFormDialog> {
       titulo: _tituloController.text.trim(),
       descricao: _descricaoController.text.trim(),
       concluida: tarefaOriginal?.concluida ?? false,
+      prioridade: _prioridade, // NOVO
     );
 
     Navigator.of(context).pop(tarefa);
@@ -241,6 +247,23 @@ class _TaskFormDialogState extends State<_TaskFormDialog> {
                   border: OutlineInputBorder(),
                 ),
                 maxLines: 3,
+              ),
+              // NOVO: campo de seleção da prioridade.
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                value: _prioridade,
+                decoration: const InputDecoration(
+                  labelText: 'Prioridade',
+                  border: OutlineInputBorder(),
+                ),
+                items: const [
+                  DropdownMenuItem(value: 'Baixa', child: Text('Baixa')),
+                  DropdownMenuItem(value: 'Média', child: Text('Média')),
+                  DropdownMenuItem(value: 'Alta', child: Text('Alta')),
+                ],
+                onChanged: (valor) {
+                  if (valor != null) setState(() => _prioridade = valor);
+                },
               ),
             ],
           ),
